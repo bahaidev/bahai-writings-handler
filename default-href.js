@@ -387,7 +387,9 @@ class DefaultHref {
     }
     if ((sm.not_enabled_message && confirm(sm.not_enabled_message)) ||
       (sma.not_enabled_message && confirm(sma.not_enabled_message))) {
-      window.location = test_handler_url;
+      const useBackup = sm.use_backup_url_if_not_enabled ||
+        sma.use_backup_url_if_not_enabled;
+      window.location = useBackup ? backupURL : test_handler_url;
       return true;
     }
     if (this.autoActivateRegisterTrigger(

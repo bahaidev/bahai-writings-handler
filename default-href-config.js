@@ -5,6 +5,7 @@ new DefaultHref(
         scheme: 'web+bahaiwritings',
         name: "Bahá'í Writings Access Protocol",
         // autoActivationEventTriggers : ['start', 'click'],
+        use_backup_url_if_not_enabled: true,
         handler_url: 'https://bahai-library.com/bahai-writings-handler/?q=%s',
         test_handler_url: 'https://bahai-library.com/test-bahai-web-protocol/test-bahai-web-protocol.html',
         not_supported_message:
