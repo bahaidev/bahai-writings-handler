@@ -1,3 +1,5 @@
+/* eslint-disable no-alert -- Simple app */
+/* eslint-disable camelcase -- API */
 // Needs ParentNode, etc. polyfill
 /*
 FUTURE TODOS:
@@ -23,25 +25,41 @@ let _menuCtr = 0;
 // Should never need duplicates of scheme handlers within an application
 const _supportMap = {};
 
+/**
+ *
+ * @param {Event} e
+ * @returns {boolean}
+ */
 function _rightClicked (e) {
   return e.button === 2;
 }
 
+/**
+ *
+ * @param {object} obj
+ * @returns {object}
+ */
 function _cloneJSON (obj) {
   return JSON.parse(JSON.stringify(obj)); // Deep Clone
 }
 
 /**
-* Checks whether any protocol handler exists (at least assuming it loads within
-*   3500 ms); uses a timeout set to check whether an iframe with the protocol
-*   has loaded
-* @param {String} testProtocol
-* @param {Function} cb Callback upon success (with the first argument
-            set to true), and if no errBack is present, it will
-            instead be called with false as its single argument
-* @param {Function} errBack Optional error callback (will be called with false
-*             as single argument)
-*/
+ * @typedef {number} Integer
+ */
+
+/**
+ * Checks whether any protocol handler exists (at least assuming it loads within
+ *   3500 ms); uses a timeout set to check whether an iframe with the protocol
+ *   has loaded.
+ * @param {string} testProtocol
+ * @param {Function} cb Callback upon success (with the first argument
+ *           set to true), and if no errBack is present, it will
+ *           instead be called with false as its single argument
+ * @param {Function} errBack Optional error callback (will be called with false
+ *             as single argument)
+ * @param {Integer} timeout
+ * @returns {void}
+ */
 function isAnyProtocolHandlerRegistered (testProtocol, cb, errBack, timeout) {
   const iframe = document.createElement('iframe');
   let success = false;
@@ -51,11 +69,11 @@ function isAnyProtocolHandlerRegistered (testProtocol, cb, errBack, timeout) {
     // Should have no side effects if following REST principles
     (testProtocol.includes(':') ? '' : ':test');
   // DOMContentLoaded does not work in Firefox or Chrome (and not IE)
-  iframe.onload = () => {
+  iframe.addEventListener('load', () => {
     success = true; // We could also safely ignore instead of clearTimeout
     clearTimeout(timeout);
     cb(true);
-  };
+  });
   timeout = setTimeout(() => {
     if (!success) {
       errBack(false);
@@ -64,16 +82,19 @@ function isAnyProtocolHandlerRegistered (testProtocol, cb, errBack, timeout) {
   document.body.append(iframe);
 }
 
+/**
+ *
+ */
 class DefaultHref {
   /**
   * Allows omission of 'new' keyword, sets configuration defaults, sets up
   * initial event handlers, may end up prompting for registration of a
   * scheme depending on configuration (though Chrome might not support
-    without user event?)
+  * without user event?).
   * @class Handles data-default-href attribute and fallback contextmenus
   *  (meta itemprop=menuitem element link children)
-  * @param {Object} protocolConfig The initial scheme-specific configuration
-  * @param {Object} dhc The cross-scheme default-href config object
+  * @param {object} protocolConfig The initial scheme-specific configuration
+  * @param {object} dhc The cross-scheme default-href config object
   */
   constructor (protocolConfig, dhc) {
     this.schemeMap = {};
@@ -91,8 +112,7 @@ class DefaultHref {
 
     if (protocolConfig.scheme) {
       this.setProtocolHandler(protocolConfig);
-    }
-    else if (protocolConfig) {
+    } else if (protocolConfig) {
       this.setProtocolHandlers(protocolConfig);
     }
     if (!dhc.delayInitEventHandlers) {
@@ -102,16 +122,21 @@ class DefaultHref {
 
   /**
   * Adds a registerProtocolHandler call where supported, and if not,
-  *   default to other behaviors
+  *   default to other behaviors.
+  * @param {Element} node
+  * @param {string} type
+  * @param {} handler
+  * @param {boolean} capturing
+  * @returns {void}
   */
   addRegisterListener (node, type, handler, capturing) {
     if (!handler || typeof handler === 'object') {
       const defaultHrefConfig = handler ||
         // If single scheme config supplied, we can use it for
         //   convenience
-        (this.protocolConfig.scheme ?
-          this.schemeMap[this.protocolConfig.scheme] :
-          false);
+        (this.protocolConfig.scheme
+          ? this.schemeMap[this.protocolConfig.scheme]
+          : false);
 
       handler = function (e) {
         e.preventDefault();
@@ -135,7 +160,8 @@ class DefaultHref {
   }
 
   /**
-  * Set up initial or on page load event handlers
+  * Set up initial or on page load event handlers.
+  * @returns {void}
   */
   initEventHandlers () {
     if (this.addDefaultHrefHandler) {
@@ -170,6 +196,7 @@ class DefaultHref {
   * default (though delegater might utilize href depending
   * on configuration); ignores other clicks.
   * @param {Event} e Click event object
+  * @returns {void}
   */
   defaultHrefHandler (e) {
     if (_rightClicked(e)) {
@@ -178,7 +205,7 @@ class DefaultHref {
 
     const a = e.target,
       // a.dataset.defaultHref
-      data_default_href = a.getAttribute('data-default-href'),
+      data_default_href = a.dataset.defaultHref,
       backupURL = a.href;
     if (a.nodeName.toLowerCase() !== 'a' || !data_default_href) {
       return;
@@ -192,41 +219,44 @@ class DefaultHref {
 
   /**
   * General check of whether there is a registerProtocolHandler support or
-  * not, and if not, handlers may be run
+  * not, and if not, handlers may be run.
+  * @param {string} data_default_href
+  * @param {string} backupURL
+  * @returns {boolean}
   */
   registerProtocolHandlerSupported (data_default_href, backupURL) {
     // Different regex than in other method as possible to be scheme
     //  without being URL
-    const scheme = data_default_href.match(/^([^:]+?)(:.+)?$/)[1],
+    const scheme = data_default_href.match(/^([^:]+?)(:.+)?$/u)[1],
       sma = this.schemeMap['*'] || {},
       // Allow for generic scheme configuration (but do not register
       //  handlers!)
       sm = this.schemeMap[scheme] || sma,
-      name = sm.name,
-      handler_url = sm.handler_url,
-      test_handler_url = sm.test_handler_url;
+      {name} = sm,
+      {handler_url} = sm,
+      {test_handler_url} = sm;
 
     // Note: it is possible that registration does not exist but the
     //   protocol will work anyways
     if (
       !navigator.registerProtocolHandler && (
-      sm.redirectIfNotSupported ||
-      sma.redirectIfNotSupported
-    )) { // No custom protocol registration support and browser support
-       // redirect enabled
+        sm.redirectIfNotSupported ||
+        sma.redirectIfNotSupported
+      )
+    ) {
+      // No custom protocol registration support and browser support
+      //   redirect enabled
       if (sm.handleBrowserRedirect) {
         sm.handleBrowserRedirect(
           sm.redirectForBrowserSupport, scheme, name,
           handler_url, test_handler_url
         );
-      }
-      else if (sma.handleBrowserRedirect) {
+      } else if (sma.handleBrowserRedirect) {
         sma.handleBrowserRedirect(
           sma.redirectForBrowserSupport, scheme, name,
           handler_url, test_handler_url
         );
-      }
-      else if (
+      } else if (
         (sm.confirms && confirm(sm.not_supported_message_redirect)) ||
         (sma.confirms && confirm(sma.not_supported_message_redirect))
       ) {
@@ -244,8 +274,8 @@ class DefaultHref {
         sm.handleHref(backupURL);
       } else if (sma.handleHref) {
         sma.handleHref(backupURL);
-      } else if (sm.useProtocolWithoutRegisterSupport) { // Meant to
-                        // add another condition here?
+      // Meant to add another condition here?
+      } else if (sm.useProtocolWithoutRegisterSupport) {
         if (data_default_href.includes(':')) {
           window.location = data_default_href;
         }
@@ -267,19 +297,22 @@ class DefaultHref {
 
   /**
   * Delegate for a specific URL to which to redirect (default or fallback).
+  * @param {string} data_default_href
+  * @param {string} backupURL
+  * @returns {void}
   */
   delegateLocation (data_default_href, backupURL) {
     if (!this.registerProtocolHandlerSupported(data_default_href, backupURL)) {
       return;
     }
 
-    const scheme = data_default_href.match(/^(.+?):/)[1],
+    const scheme = data_default_href.match(/^(.+?):/u)[1],
       sma = this.schemeMap['*'] || {},
       // Allow for generic scheme configuration (but do not register handlers!)
       sm = this.schemeMap[scheme] || sma,
-      name = sm.name,
-      handler_url = sm.handler_url,
-      test_handler_url = sm.test_handler_url;
+      {name} = sm,
+      {handler_url} = sm,
+      {test_handler_url} = sm;
 
     // Specific (same-domain) protocol handler URL supplied for checking and
     //  browser supports custom protocol registration, but not registered
@@ -313,7 +346,17 @@ class DefaultHref {
 
   /**
   * Attempts to detect whether the protocol is supported, and if so, will
-  *   redirect the page to it, and if not, it will redirect to a backup URL ()
+  *   redirect the page to it, and if not, it will redirect to a backup URL ().
+  * @param {} data_default_href
+  * @param {} sm
+  * @param {} sma
+  * @param {} scheme
+  * @param {} name
+  * @param {} handler_url
+  * @param {} test_handler_url
+  * @param {string} backupURL
+  * @param {} useBackupURL
+  * @returns {void}
   */
   successful_protocol_check (
     data_default_href, sm, sma, scheme, name, handler_url,
@@ -366,6 +409,15 @@ class DefaultHref {
   * enabled), or, if not present, will optionally redirect the user, upon a
   * confirm() dialog to a designated URL (at which messages could be placed
   * about how to register for a protocol handler or find such handlers).
+  * @param {} sm
+  * @param {} sma
+  * @param {} scheme
+  * @param {} name
+  * @param {} handler_url
+  * @param {} test_handler_url
+  * @param {} backupURL
+  * @param {} useBackupURL
+  * @returns {boolean}
   */
   handleNotEnabled (
     sm, sma, scheme, name, handler_url, test_handler_url,
@@ -414,13 +466,14 @@ class DefaultHref {
   /**
   * @param {'click'|'start'} type Type of activation to run (note 'start'
   * might not be supported in browsers besides Firefox)
-  * @param {Object} sm
-  * @param {String} scheme
-  * @param {String} handler_url
-  * @param {String} name
+  * @param {object} sm
+  * @param {string} scheme
+  * @param {string} handler_url
+  * @param {string} name
+  * @returns {boolean}
   */
   autoActivateRegisterTrigger (type, sm, scheme, handler_url, name) {
-    const autoActivationEventTriggers = sm.autoActivationEventTriggers;
+    const {autoActivationEventTriggers} = sm;
     if (
       autoActivationEventTriggers &&
       autoActivationEventTriggers.includes(type)
@@ -436,10 +489,15 @@ class DefaultHref {
       http://www.whatwg.org/specs/web-apps/current-work/multipage/interactive-elements.html#context-menus
       http://hacks.mozilla.org/2011/11/html5-context-menus-in-firefox-screencast-and-code/
   */
+  /**
+   *
+   * @param {} a
+   * @returns {void}
+   */
   fallbackMenuEventHandler (a) {
     if (a.hasAttribute('contextmenu') ||
       // a.hasAttribute('data-context-key')
-      !(a.dataset.contextKey || a.getElementsByTagName('meta').length)) {
+      !(a.dataset.contextKey || a.querySelectorAll('meta').length)) {
       return;
     }
     // a.getAttribute('data-context-key');
@@ -471,9 +529,9 @@ class DefaultHref {
 
     this.fallbacks[key].concat(this.fallbacks['']).forEach((fbPair) => {
       const menuitem = document.createElement(this.menuitemName),
-        key = Object.keys(fbPair)[0],
-        value = fbPair[key];
-      menuitem.setAttribute('label', key);
+        ky = Object.keys(fbPair)[0],
+        value = fbPair[ky];
+      menuitem.setAttribute('label', ky);
       menuitem.setAttribute('title', value);
       menuitem.addEventListener('click', () => {
         location.href = value;
@@ -484,12 +542,19 @@ class DefaultHref {
     document.body.append(menu);
   }
 
+  /**
+   * @returns {void}
+   */
   fallbackMenuBuilder () {
     [...document.querySelectorAll('a')].forEach((a) => {
       this.fallbackMenuEventHandler(a);
     });
   }
 
+  /**
+   * @param {} protocolConfig
+   * @returns {void}
+   */
   setProtocolHandlers (protocolConfig) { // {'web+1': {}, 'web+2': {}, etc.}
     const schemes = protocolConfig.schemes || protocolConfig;
 
@@ -501,11 +566,15 @@ class DefaultHref {
     }
   }
 
+  /**
+   * @param {} protocolConfig
+   * @returns {void}
+   */
   setProtocolHandler (protocolConfig) { // {scheme: 'web+1', otherConfig...}
     const {name, scheme, handler_url} = protocolConfig;
-      // Not in use?
-      // autoActivationEventTriggers =
-      //    protocolConfig.autoActivationEventTriggers;
+    // Not in use?
+    // autoActivationEventTriggers =
+    //    protocolConfig.autoActivationEventTriggers;
 
     this.schemeMap[scheme] = protocolConfig;
 
@@ -525,29 +594,29 @@ class DefaultHref {
         protocolConfig.redirectForBrowserSupport || 'http://getfirefox.com/';
       this.schemeMap[scheme].not_supported_message =
         protocolConfig.not_supported_message ||
-          "Your browser does not support protocol registration, something " +
-          "which we would use to allow you to make your own choice about " +
-          "which website tool you would wish to use to visit " +
-          "specially-written links as used on this page. However, we will " +
-          "pass you on to a default URL unless you click cancel";
+          'Your browser does not support protocol registration, something ' +
+          'which we would use to allow you to make your own choice about ' +
+          'which website tool you would wish to use to visit ' +
+          'specially-written links as used on this page. However, we will ' +
+          'pass you on to a default URL unless you click cancel';
       this.schemeMap[scheme].not_supported_message_redirect =
         protocolConfig.not_supported_message_redirect ||
-          "Your browser does not support protocol registration, something " +
-          "which we would use to allow you to make your own choice about " +
-          "which website tool you would wish to use to visit " +
-          "specially-written links as used on this page. You will now be " +
-          "redirected to " +
+          'Your browser does not support protocol registration, something ' +
+          'which we would use to allow you to make your own choice about ' +
+          'which website tool you would wish to use to visit ' +
+          'specially-written links as used on this page. You will now be ' +
+          'redirected to ' +
           this.schemeMap[scheme].redirectForBrowserSupport +
           ' unless you click cancel.';
       this.schemeMap[scheme].not_enabled_message =
         protocolConfig.not_enabled_message ||
-          "You have not yet opted to register a handler for the \"" + scheme +
-          "\" " +
-          "protocol, a protocol which allows you to visit links which will " +
-          "direct you to the tool you prefer, so you will instead be sent " +
-          "directly to a default URL specified within this page unless you " +
-          "click cancel to stay on this page and choose the protocol " +
-          "suggested by this page.";
+          'You have not yet opted to register a handler for the "' + scheme +
+          '" ' +
+          'protocol, a protocol which allows you to visit links which will ' +
+          'direct you to the tool you prefer, so you will instead be sent ' +
+          'directly to a default URL specified within this page unless you ' +
+          'click cancel to stay on this page and choose the protocol ' +
+          'suggested by this page.';
     }
 
     this.autoActivateRegisterTrigger(
@@ -555,16 +624,18 @@ class DefaultHref {
     );
   }
 
+  /* eslint-disable class-methods-use-this -- Convenient */
   /**
-  * Register a protocol handler if supported
-  * @param {String} scheme Scheme to register
-  * @param {String} handler_url URL of the site's handler (with %s to replace
-  *   query string)
-  * @param {String} name Visible name user agent may show to user
-  * @returns {Boolean} Whether navigator.registerProtocolHandler is available
-  *  or not
-  */
+   * Register a protocol handler if supported.
+   * @param {string} scheme Scheme to register
+   * @param {string} handler_url URL of the site's handler (with %s to replace
+   *   query string)
+   * @param {string} name Visible name user agent may show to user
+   * @returns {boolean} Whether navigator.registerProtocolHandler is available
+   *  or not
+   */
   register (scheme, handler_url, name) {
+    /* eslint-enable class-methods-use-this -- Convenient */
     if (!navigator.registerProtocolHandler) {
       return false;
     }

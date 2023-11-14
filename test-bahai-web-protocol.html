@@ -9,45 +9,49 @@
     // For portability
     const base = new URL('/', location.href).href;
 
-    const dh = new DefaultHref({ // CONFIGURATION OBJECT FOR DATA-DEFAULT-HREF SUPPORT
-        scheme: 'web+bahaiwritings',
-        name: "Bahá'í Writings Access Protocol",
-        handler_url: base + 'test-bahai-web-protocol/index.php?q=%s',
-        redirectIfNotSupported: false,
-        use_backup_url_if_not_enabled: true,
-        test_handler_url:
-            base + 'test-bahai-web-protocol/test-bahai-web-protocol.html',
-        not_supported_message:
-    "Your browser does not support protocol registration, something which we would use to "+
-    "allow you to make your own choice about which website you would wish to use to visit "+
-    "specially-written Bah\u00e1'\u00ed Writings links as used on this page. Try Firefox.",
-        not_enabled_message :
-    "You have not yet opted to register a handler for the \"web+bahaiwritings\" "+
-    "protocol, a protocol which allows you to visit links which will direct you to "+
-    "whatever Bah\u00e1'\u00ed Writings tool you prefer, so you will be redirected to "+
-    "a default we have specified at bahai-library.com . You may, however, click cancel "+
-    "to stay on this page and choose the protocol suggested by this page."
-        },
-        {fallbacks : {
-          abl: [
-            {"Bah\u00e1'\u00ed Reference Library":
-                "https://reference.bahai.org/en/t/ab/ABL/abl-4.html#pg22"},
-            {"Bah\u00e1'\u00ed Library Online":
-                "https://bahai-library.com/writings/abdulbaha/abl/abdulbahalondon.html#22"}
-          ],
-          ka: [
-            {"Bah\u00e1'\u00ed Reference Library":
-                "https://reference.bahai.org/en/t/b/KA/ka-4.html#gr15"},
-            {"Bah\u00e1'\u00ed Library Online":
-                "https://bahai-library.com/writings/bahaullah/aqdas/kaall.html#par15"}
-          ]
-        }}
-    );
+    /* eslint-disable camelcase, @stylistic/max-len -- API */
+    const dh = new DefaultHref({
+      // CONFIGURATION OBJECT FOR DATA-DEFAULT-HREF SUPPORT
+      scheme: 'web+bahaiwritings',
+      name: "Bahá'í Writings Access Protocol",
+      handler_url: base + 'test-bahai-web-protocol/index.php?q=%s',
+      redirectIfNotSupported: false,
+      use_backup_url_if_not_enabled: true,
+      test_handler_url:
+          base + 'test-bahai-web-protocol/test-bahai-web-protocol.html',
+      not_supported_message:
+  'Your browser does not support protocol registration, something which we would use to ' +
+  'allow you to make your own choice about which website you would wish to use to visit ' +
+  "specially-written Bah\u00E1'\u00ED Writings links as used on this page. Try Firefox.",
+      not_enabled_message:
+  'You have not yet opted to register a handler for the "web+bahaiwritings" ' +
+  'protocol, a protocol which allows you to visit links which will direct you to ' +
+  "whatever Bah\u00E1'\u00ED Writings tool you prefer, so you will be redirected to " +
+  'a default we have specified at bahai-library.com . You may, however, click cancel ' +
+  'to stay on this page and choose the protocol suggested by this page.'
+    }, {
+      fallbacks: {
+        abl: [
+          {"Bah\u00E1'\u00ED Reference Library":
+              'https://reference.bahai.org/en/t/ab/ABL/abl-4.html#pg22'},
+          {"Bah\u00E1'\u00ED Library Online":
+              'https://bahai-library.com/writings/abdulbaha/abl/abdulbahalondon.html#22'}
+        ],
+        ka: [
+          {"Bah\u00E1'\u00ED Reference Library":
+              'https://reference.bahai.org/en/t/b/KA/ka-4.html#gr15'},
+          {"Bah\u00E1'\u00ED Library Online":
+              'https://bahai-library.com/writings/bahaullah/aqdas/kaall.html#par15'}
+        ]
+      }
+    });
+  /* eslint-enable camelcase, @stylistic/max-len -- API */
+
     window.addEventListener('DOMContentLoaded', () => {
-        dh.addRegisterListener(
-            document.querySelector('#addRegisterListener'),
-            'click'
-        );
+      dh.addRegisterListener(
+        document.querySelector('#addRegisterListener'),
+        'click'
+      );
     });
 
     /* Todos:
@@ -56,7 +60,7 @@
         b) Populate other Writings
         c) Make derivative script for bookmarking shortcuts
         d) Make JS-only version of redirect page
-    2) Update web-form for allowing typing values, with window.location set to protocol!
+    2) Update web-form for allowing typing values, with location set to protocol!
 
     */
   </script>
