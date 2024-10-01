@@ -10,7 +10,7 @@
     "bahai"
   ],  "main": "default-href.js",
   "browserslist": [
-    "cover 100%"
+    "defaults, not op_mini all"
   ],
   "exports": {
     "browser": {
@@ -18,8 +18,8 @@
     }
   },
   "scripts": {
-    "eslint": "eslint --ext=js,cjs,mjs,md,html .",
-    "lint": "npm run eslint",
+    "eslint": "eslint .",
+    "lint": "npm run eslint --",
     "mocha": "mocha",
     "test": "c8 npm run mocha"
   },
@@ -32,10 +32,10 @@
   },
   "homepage": "https://github.com/brettz9/bahai-writings-handler",
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=18.0.0"
   },
   "devDependencies": {
-    "eslint": "latest",
-    "eslint-config-ash-nazg": "latest"
+    "eslint": "^9.11.1",
+    "eslint-config-ash-nazg": "^36.18.1"
   }
 }

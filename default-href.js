@@ -1,5 +1,6 @@
 /* eslint-disable no-alert -- Simple app */
 /* eslint-disable camelcase -- API */
+/* eslint-disable prefer-named-capture-group -- Convenient */
 // Needs ParentNode, etc. polyfill
 /*
 FUTURE TODOS:

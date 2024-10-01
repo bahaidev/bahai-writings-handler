@@ -1,4 +1,4 @@
-/* eslint-disable camelcase, import/unambiguous, @stylistic/max-len -- API */
+/* eslint-disable camelcase, @stylistic/max-len -- API */
 /* globals DefaultHref -- Example */
 // Example
 // eslint-disable-next-line no-new -- Temporary
