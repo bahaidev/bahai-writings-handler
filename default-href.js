@@ -41,6 +41,7 @@ function _rightClicked (e) {
  * @returns {object}
  */
 function _cloneJSON (obj) {
+  // eslint-disable-next-line unicorn/prefer-structured-clone -- Safer
   return JSON.parse(JSON.stringify(obj)); // Deep Clone
 }
 
@@ -53,11 +54,11 @@ function _cloneJSON (obj) {
  *   3500 ms); uses a timeout set to check whether an iframe with the protocol
  *   has loaded.
  * @param {string} testProtocol
- * @param {Function} cb Callback upon success (with the first argument
+ * @param {() => boolean} cb Callback upon success (with the first argument
  *           set to true), and if no errBack is present, it will
  *           instead be called with false as its single argument
- * @param {Function} errBack Optional error callback (will be called with false
- *             as single argument)
+ * @param {() => boolean} errBack Optional error callback (will be called
+ *             with false as single argument)
  * @param {Integer} timeout
  * @returns {void}
  */
@@ -73,6 +74,7 @@ function isAnyProtocolHandlerRegistered (testProtocol, cb, errBack, timeout) {
   iframe.addEventListener('load', () => {
     success = true; // We could also safely ignore instead of clearTimeout
     clearTimeout(timeout);
+    // eslint-disable-next-line promise/prefer-await-to-callbacks -- Convenient
     cb(true);
   });
   timeout = setTimeout(() => {
@@ -126,7 +128,7 @@ class DefaultHref {
   *   default to other behaviors.
   * @param {Element} node
   * @param {string} type
-  * @param {} handler
+  * @param {(e: event) => void} handler
   * @param {boolean} capturing
   * @returns {void}
   */
@@ -166,7 +168,7 @@ class DefaultHref {
   */
   initEventHandlers () {
     if (this.addDefaultHrefHandler) {
-      window.addEventListener('DOMContentLoaded', () => {
+      globalThis.addEventListener('DOMContentLoaded', () => {
         // Could call as onclick to ensure available even before
         //  DOM load
         document.body.addEventListener('click', (e) => {
@@ -176,7 +178,7 @@ class DefaultHref {
     }
     if (this.fallbacks) {
       if (!this.fallbackLazyLoad) {
-        window.addEventListener('DOMContentLoaded', () => {
+        globalThis.addEventListener('DOMContentLoaded', () => {
           this.fallbackMenuBuilder();
         });
       }
@@ -263,7 +265,7 @@ class DefaultHref {
       ) {
         // Confirmations enabled and confirms ok to redirect
         //  (otherwise, will stay on page doing nothing)
-        window.location = sm.redirectForBrowserSupport ||
+        globalThis.location = sm.redirectForBrowserSupport ||
           sma.redirectForBrowserSupport;
       }
       // else {} // The user cancelled confirmation
@@ -278,7 +280,7 @@ class DefaultHref {
       // Meant to add another condition here?
       } else if (sm.useProtocolWithoutRegisterSupport) {
         if (data_default_href.includes(':')) {
-          window.location = data_default_href;
+          globalThis.location = data_default_href;
         }
       } else if (
         // confirmations disabled or the user opts to go on to fallback
@@ -287,7 +289,7 @@ class DefaultHref {
         (!sma.confirms || confirm(sma.not_supported_message))
       ) {
         if (backupURL) {
-          window.location = backupURL;
+          globalThis.location = backupURL;
         }
       }
       // else {} // The user cancelled confirmation
@@ -348,7 +350,7 @@ class DefaultHref {
   /**
   * Attempts to detect whether the protocol is supported, and if so, will
   *   redirect the page to it, and if not, it will redirect to a backup URL ().
-  * @param {} data_default_href
+  * @param {string} data_default_href
   * @param {} sm
   * @param {} sma
   * @param {} scheme
@@ -356,7 +358,7 @@ class DefaultHref {
   * @param {} handler_url
   * @param {} test_handler_url
   * @param {string} backupURL
-  * @param {} useBackupURL
+  * @param {boolean} useBackupURL
   * @returns {void}
   */
   successful_protocol_check (
@@ -364,7 +366,7 @@ class DefaultHref {
     test_handler_url, backupURL, useBackupURL
   ) {
     if (_supportMap[scheme]) {
-      window.location = data_default_href;
+      globalThis.location = data_default_href;
       /*
         // This way to check doesn't work on all browsers
         if (location != data_default_href) {
@@ -392,12 +394,14 @@ class DefaultHref {
       return;
     }
 
-    const args = arguments;
     isAnyProtocolHandlerRegistered(
       data_default_href,
       (success) => {
         _supportMap[scheme] = success;
-        this.successful_protocol_check(...args);
+        this.successful_protocol_check(
+          data_default_href, sm, sma, scheme, name, handler_url,
+          test_handler_url, backupURL, useBackupURL
+        );
       }
     );
   }
@@ -442,7 +446,7 @@ class DefaultHref {
       (sma.not_enabled_message && confirm(sma.not_enabled_message))) {
       const useBackup = sm.use_backup_url_if_not_enabled ||
         sma.use_backup_url_if_not_enabled;
-      window.location = useBackup ? backupURL : test_handler_url;
+      globalThis.location = useBackup ? backupURL : test_handler_url;
       return true;
     }
     if (this.autoActivateRegisterTrigger(
@@ -457,7 +461,7 @@ class DefaultHref {
     // go on directly to href if present; otherwise will simulate protocol
     //  support check by returning false
     if (useBackupURL && backupURL) {
-      window.location = backupURL;
+      globalThis.location = backupURL;
       return true;
     }
     // No handlers of not enabled
@@ -492,7 +496,7 @@ class DefaultHref {
   */
   /**
    *
-   * @param {} a
+   * @param {HTMLAnchorElement} a
    * @returns {void}
    */
   fallbackMenuEventHandler (a) {
@@ -528,6 +532,7 @@ class DefaultHref {
       this.fallbacks[''].push(obj);
     });
 
+    // eslint-disable-next-line unicorn/prefer-spread -- Convenient
     this.fallbacks[key].concat(this.fallbacks['']).forEach((fbPair) => {
       const menuitem = document.createElement(this.menuitemName),
         ky = Object.keys(fbPair)[0],
@@ -561,9 +566,11 @@ class DefaultHref {
 
     const configObj = {};
     for (const scheme in schemes) {
-      configObj[scheme] = _cloneJSON(schemes[scheme]);
-      configObj[scheme].scheme = scheme;
-      this.setProtocolHandler(schemes[scheme]);
+      if (Object.hasOwn(schemes, scheme)) {
+        configObj[scheme] = _cloneJSON(schemes[scheme]);
+        configObj[scheme].scheme = scheme;
+        this.setProtocolHandler(schemes[scheme]);
+      }
     }
   }
 
@@ -592,7 +599,7 @@ class DefaultHref {
 
     if (confirms) {
       this.schemeMap[scheme].redirectForBrowserSupport =
-        protocolConfig.redirectForBrowserSupport || 'http://getfirefox.com/';
+        protocolConfig.redirectForBrowserSupport || 'https://getfirefox.com/';
       this.schemeMap[scheme].not_supported_message =
         protocolConfig.not_supported_message ||
           'Your browser does not support protocol registration, something ' +

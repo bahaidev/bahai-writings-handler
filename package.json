@@ -10,7 +10,7 @@
     "bahai"
   ],  "main": "default-href.js",
   "browserslist": [
-    "defaults, not op_mini all"
+    "Chrome > 100, Firefox > 100"
   ],
   "exports": {
     "browser": {
@@ -35,7 +35,7 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "eslint": "^9.11.1",
-    "eslint-config-ash-nazg": "^36.18.1"
+    "eslint": "^9.34.0",
+    "eslint-config-ash-nazg": "^39.0.1"
   }
 }

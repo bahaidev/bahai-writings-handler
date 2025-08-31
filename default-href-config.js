@@ -1,5 +1,7 @@
 /* eslint-disable camelcase, @stylistic/max-len -- API */
-/* globals DefaultHref -- Example */
+
+import DefaultHref from './default-href.js';
+
 // Example
 // eslint-disable-next-line no-new -- Temporary
 new DefaultHref(
