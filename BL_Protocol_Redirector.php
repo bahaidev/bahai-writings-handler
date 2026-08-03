@@ -107,12 +107,11 @@ class BL_Protocol_Redirector extends Bahai_Writings_Protocol_Redirector {
 			'bibs' => [
 				'page' => 'http://bible.gospelcom.net/cgi-bin/bible?SearchType=AND&language=english&version=NIV&searchpage=0&search=%s&x=0&y=0'
 			],
-            */
-			'bk' => [
+
+      'bk' => [
 				'page' => 'https://bahai-library.com/books/bahiyyih.khanum/bkall.html#%s'
 			],
-            /*
-			'bl' => [
+      'bl' => [
 				'page' => 'https://bahai-library.com/%s'
 			],
             */

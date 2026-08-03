@@ -4,6 +4,12 @@ require('Protocol_Redirector.php');
 
 abstract class Bahai_Writings_Protocol_Redirector extends Protocol_Redirector {
     public $protocol = 'web+bahaiwritings';
+    public $query;
+    public $language;
+    public $work;
+    public $unit;
+    public $action;
+    public $additional_argument;
 
     public function parse_query_string () {
         if (!isset($_GET['q'])) {
